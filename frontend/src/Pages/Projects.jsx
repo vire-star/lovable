@@ -134,8 +134,8 @@ const Projects = () => {
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {projects.map((project) => (
               <div
-                key={project._id}
-                onClick={() => navigate(`/AI-room/${project._id}`)}
+                key={project.id}
+                onClick={() => navigate(`/AI-room/${project.id}`)}
                 className='group relative p-6 bg-slate-900/50 backdrop-blur-xl border border-slate-800 hover:border-pink-500/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden'
               >
                 {/* Gradient overlay on hover */}
