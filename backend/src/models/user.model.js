@@ -17,12 +17,13 @@ const userSchema = new mongoose.Schema({
   // ✅ Subscription - Good! Add expiry
   subscription: {
     isPremium: { type: Boolean, default: false },
-    plan: { type: String, enum: ['free', 'beginner', 'intermediate', 'advanced'], default: 'free' }, // ✅ Your plan names
+    plan: { type: String, enum: ['free',  'intermediate', 'advanced'], default: 'free' }, // ✅ Your plan names
     stripeCustomerId: String,
     subscriptionId: String,
     currentPeriodEnd: Date, // ✅ Add subscription expiry
     cancelAtPeriodEnd: { type: Boolean, default: false } // ✅ Cancel tracking
   },
+  
   
   usage: { // ✅ Add usage tracking
     totalProjects: { type: Number, default: 0 },

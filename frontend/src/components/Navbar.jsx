@@ -1,7 +1,7 @@
 // frontend/src/components/Navbar.jsx
 
 import { userStore } from '@/Store/UserStore'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { useGetUserHook, useLogoutHook } from '@/hooks/user.hook'
 import { useNavigate } from 'react-router-dom'
@@ -10,10 +10,10 @@ import { LogOut, FolderOpen, Loader2, Sparkles, Code2 } from 'lucide-react'
 const Navbar = () => {
   const user = userStore((state) => state.user)
   const clearUser = userStore((state) => state.clearUser)
-  const {data} = useGetUserHook()
   const navigate = useNavigate()
   const { mutate: logout, isPending } = useLogoutHook()
-  
+  const {data} = useGetUserHook()
+ 
   console.log(data)
   const logoutHandler = () => {
     console.log('🚪 Logout initiated')
@@ -67,6 +67,19 @@ const Navbar = () => {
                     <FolderOpen className='w-4 h-4 text-slate-400 group-hover:text-pink-400 transition-colors duration-300' />
                     <span className='text-sm font-medium text-slate-300 group-hover:text-white transition-colors duration-300 hidden sm:inline'>
                       My Projects
+                    </span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => navigate('/offers')}
+                  className='group relative px-4 py-2 rounded-lg overflow-hidden transition-all duration-300'
+                >
+                  <div className='absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                  <div className='absolute inset-0 border border-pink-500/0 group-hover:border-pink-500/30 rounded-lg transition-all duration-300'></div>
+                  <div className='relative flex items-center gap-2'>
+                    <FolderOpen className='w-4 h-4 text-slate-400 group-hover:text-pink-400 transition-colors duration-300' />
+                    <span className='text-sm font-medium text-slate-300 group-hover:text-white transition-colors duration-300 hidden sm:inline'>
+                      My Offers
                     </span>
                   </div>
                 </button>

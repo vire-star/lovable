@@ -7,6 +7,7 @@ import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { ProtectRoute } from './ProtectRoute'
 import Projects from '@/Pages/Projects'
+import Offers from '@/Pages/Offers'
 
 const MainRoutes = () => {
   return (
@@ -24,6 +25,12 @@ const MainRoutes = () => {
 
           <ProtectRoute>
             <Projects/>
+          </ProtectRoute>
+        }/>
+        <Route path='/offers' element={
+
+          <ProtectRoute>
+            <Offers/>
           </ProtectRoute>
         }/>
         

@@ -14,7 +14,8 @@ export const useRegisterHook = ()=>{
             navigate('/')
         },
         onError:(err)=>{
-            console.log(err)
+            console.log(err?.response?.data?.message)
+            toast.error(err?.response?.data?.message)
         }
     })
 }

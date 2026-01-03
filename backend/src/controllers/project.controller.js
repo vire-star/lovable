@@ -3,6 +3,7 @@ import { Project } from '../models/project.model.js'
 import { User } from '../models/user.model.js'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { ENV } from '../config/env.js'
+import { CreditService } from '../services/creditService.js'
 
 const genAI = new GoogleGenerativeAI(ENV.GEMINI_API_KEY)
  
@@ -147,6 +148,14 @@ export const generateCode = async (req, res) => {
         error: 'Prompt is required'
       })
     }
+
+    const hasCredits = await CreditService.hasCredits(userId);
+if (!hasCredits) {
+  return res.status(402).json({
+    success: false,
+    message: "No credits left. Please purchase credits."
+  });
+}
 
     console.log(`🤖 Generating code for user ${userId}...`)
 

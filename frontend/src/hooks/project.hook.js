@@ -25,6 +25,7 @@
 import { createProjectApi, getAllProjects, getProject, saveProjectApi } from '@/Api/project.api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+import { toast } from 'sonner'
 
 // const baseUrls = '/api/project'
 export const baseUrls = 'http://localhost/api'
@@ -37,7 +38,8 @@ export const useProjectHook = () => {
       console.log(data)
     },
     onError:(err)=>{
-      console.log(err)
+      console.log(err?.response?.data?.message)
+        toast.error(err?.response?.data?.message)
     }
   })
 }
