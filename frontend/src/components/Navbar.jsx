@@ -26,7 +26,7 @@ const Navbar = () => {
     }
   return (
     <div className='flex items-center justify-between px-9 h-[10vh] shadow-2xl'>
-        <h1>Buildly</h1>
+        <h1 onClick={()=>navigate('/')}>Buildly</h1>
         <div>
           {
             user? 

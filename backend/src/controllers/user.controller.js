@@ -31,7 +31,7 @@ export const register = async(req, res)=>{
         const token = await jwt.sign({userId:user._id}, ENV.JWT_SECRET)
 
         return res.status(201).cookie("token", token, { 
-        maxAge: 1 * 24 * 60 * 60 * 1000, 
+        maxAge: 20 * 24 * 60 * 60 * 1000, 
         httpOnly: true, 
         secure: true, 
         sameSite: "none"
@@ -77,7 +77,7 @@ export const login = async(req,res)=>{
 
         const token = await jwt.sign({userId:user._id}, ENV.JWT_SECRET) 
         return res.status(201).cookie("token", token,{ 
-        maxAge: 1 * 24 * 60 * 60 * 1000, 
+        maxAge: 20 * 24 * 60 * 60 * 1000, 
         httpOnly: true, 
         secure: true, 
         sameSite: "none"
