@@ -144,7 +144,7 @@ const Navbar = () => {
                 
                 {/* Sign Up - Gradient Button */}
                 <button 
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate('/register')}
                   className='group relative px-5 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105'
                 >
                   <div className='absolute inset-0 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 opacity-100 group-hover:opacity-90 transition-opacity duration-300'></div>
