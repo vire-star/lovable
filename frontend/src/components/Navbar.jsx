@@ -3,16 +3,18 @@
 import { userStore } from '@/Store/UserStore'
 import React from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
-import { useLogoutHook } from '@/hooks/user.hook'
+import { useGetUserHook, useLogoutHook } from '@/hooks/user.hook'
 import { useNavigate } from 'react-router-dom'
 import { LogOut, FolderOpen, Loader2, Sparkles, Code2 } from 'lucide-react'
 
 const Navbar = () => {
   const user = userStore((state) => state.user)
   const clearUser = userStore((state) => state.clearUser)
+  const {data} = useGetUserHook()
   const navigate = useNavigate()
   const { mutate: logout, isPending } = useLogoutHook()
   
+  console.log(data)
   const logoutHandler = () => {
     console.log('🚪 Logout initiated')
     
@@ -52,7 +54,7 @@ const Navbar = () => {
           
           {/* Right Section */}
           <div className='flex items-center gap-4'>
-            {user ? (
+            {data ? (
               <>
                 {/* My Projects Button */}
                 <button
