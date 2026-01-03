@@ -1,0 +1,6 @@
+# Sandbox folders (runtime only)
+sandboxes/
+sandbox/
+tmp/
+temp/
+.env
