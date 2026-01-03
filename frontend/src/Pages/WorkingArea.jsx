@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useGetProjectHook, useProjectHook } from '@/hooks/project.hook'
 import Editor from '@monaco-editor/react'
-import { Send, Code, Eye, MessageSquare, ExternalLink, Download, Save } from 'lucide-react'
+import { Send, Code, Eye, MessageSquare, ExternalLink, Download, Save, Sparkles } from 'lucide-react'
 import { getPreviewHTML } from '@/hooks/livepreview'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCodeStore } from '@/Store/CodeStore'
@@ -26,8 +26,9 @@ const WorkingArea = () => {
   
   const createProject = useProjectHook()
   const { data, isLoading } = useGetProjectHook(id)
+  const navigate = useNavigate()
 
-  const navigate = useNavigate()  // ✅ Load existing project data when available
+  // Load existing project data
   useEffect(() => {
     if (data?.project) {
       setFiles(data.project.files || [])
@@ -74,15 +75,12 @@ const WorkingArea = () => {
     }
   }, [data])
 
-  // ✅ Auto-scroll messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // ✅ Handle file selection
   const handleFileSelect = useCallback((file) => {
     if (file.type === 'file') {
-      // Check for unsaved changes
       if (hasUnsavedChanges) {
         const confirm = window.confirm('You have unsaved changes. Do you want to discard them?')
         if (!confirm) return
@@ -102,13 +100,11 @@ const WorkingArea = () => {
     }
   }, [hasUnsavedChanges])
 
-  // ✅ Handle editor changes
   const handleEditorChange = useCallback((value) => {
     setCurrentCode(value || '')
     setHasUnsavedChanges(true)
   }, [])
 
-  // ✅ Save manual changes to backend
   const handleManualSave = useCallback(async () => {
     if (!currentCode || !id || !hasUnsavedChanges) return
 
@@ -118,10 +114,9 @@ const WorkingArea = () => {
       const response = await fetch(`${baseUrl}/project/save-file`, {
         method: 'POST',
         headers: {
-        'Content-Type': 'application/json',
-        // ❌ REMOVE: 'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      credentials: 'include',
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({
           projectId: id,
           filePath: activeFile,
@@ -158,7 +153,6 @@ const WorkingArea = () => {
     }
   }, [currentCode, id, activeFile, hasUnsavedChanges])
 
-  // ✅ Auto-save on Ctrl+S
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -173,7 +167,6 @@ const WorkingArea = () => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [hasUnsavedChanges, handleManualSave])
 
-  // ✅ Handle code generation/update with conversational responses
   const handleSubmit = useCallback((e) => {
     e.preventDefault()
     if (!prompt.trim()) return
@@ -286,7 +279,6 @@ const WorkingArea = () => {
     setPrompt('')
   }, [prompt, id, activeFile, createProject, setCode])
 
-  // ✅ Debounce preview updates for performance
   useEffect(() => {
     const timer = setTimeout(() => {
       setPreviewCode(currentCode)
@@ -295,15 +287,15 @@ const WorkingArea = () => {
     return () => clearTimeout(timer)
   }, [currentCode])
 
-  // ✅ Deploy to live URL
-
-  // ✅ Loading state
   if (isLoading) {
     return (
-      <div className='h-screen w-full flex items-center justify-center bg-slate-50'>
+      <div className='h-screen w-full flex items-center justify-center bg-slate-950'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800 mx-auto mb-4'></div>
-          <p className='text-slate-600'>Loading project...</p>
+          <div className='relative'>
+            <div className='w-16 h-16 border-4 border-slate-800 border-t-pink-500 rounded-full animate-spin mx-auto mb-4'></div>
+            <Sparkles className='w-6 h-6 text-pink-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' />
+          </div>
+          <p className='text-slate-400'>Loading project...</p>
         </div>
       </div>
     )
@@ -312,7 +304,7 @@ const WorkingArea = () => {
   const isMainAppFile = activeFile === 'src/App.jsx' || activeFile === 'App.jsx'
 
   return (
-    <div className='h-screen w-full flex bg-slate-50'>
+    <div className='h-screen w-full flex bg-slate-950'>
       {/* File Tree */}
       <FileTree
         files={files}
@@ -327,35 +319,52 @@ const WorkingArea = () => {
       />
 
       {/* LEFT SIDEBAR - Chat */}
-      <div className='w-full sm:w-[400px] lg:w-[30%] h-full flex flex-col border-r border-slate-200 bg-white'>
+      <div className='w-full sm:w-[400px] lg:w-[30%] h-full flex flex-col border-r border-slate-800 bg-slate-900'>
         
-        <div className='px-4 py-3 border-b border-slate-200 bg-slate-50'>
+        {/* Header */}
+        <div className='px-4 py-3 border-b border-slate-800 bg-slate-900/50'>
           <div className='flex items-center gap-2'>
-            <MessageSquare className='w-5 h-5 text-slate-700' />
-            <h2 className='text-lg font-bold text-slate-900'>AI Assistant</h2>
+            <div className='relative'>
+              <MessageSquare className='w-5 h-5 text-pink-400' />
+              <div className='absolute inset-0 blur-sm bg-pink-500/30 rounded-full'></div>
+            </div>
+            <h2 className='text-lg font-bold text-white'>AI Assistant</h2>
           </div>
-          <p className='text-xs text-slate-500 mt-1'>
+          <p className='text-xs text-slate-400 mt-1'>
             {data?.project?.name || 'Project'} • Version {data?.project?.versions?.length || 1}
           </p>
         </div>
 
+        {/* Messages */}
         <div className='flex-1 overflow-y-auto px-4 py-4 space-y-4'>
           {messages.length === 0 ? (
             <div className='flex flex-col items-center justify-center h-full text-center px-4'>
-              <div className='w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4'>
-                <MessageSquare className='w-8 h-8 text-slate-400' />
+              <div className='relative mb-6'>
+                <div className='w-20 h-20 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-full flex items-center justify-center backdrop-blur-sm'>
+                  <Sparkles className='w-10 h-10 text-pink-400' />
+                </div>
+                <div className='absolute inset-0 bg-pink-500/20 blur-xl rounded-full animate-pulse'></div>
               </div>
-              <h3 className='text-base font-semibold text-slate-900 mb-2'>
-                Start Editing
+              <h3 className='text-base font-semibold text-white mb-2'>
+                Start Creating
               </h3>
-              <p className='text-sm text-slate-500 mb-4'>
-                Tell me what you want to change
+              <p className='text-sm text-slate-400 mb-6'>
+                Tell me what you want to build or change
               </p>
-              <div className='text-left space-y-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg'>
-                <p className='font-semibold text-slate-700'>Try asking:</p>
-                <p>• "Add dark mode toggle"</p>
-                <p>• "Change primary color to blue"</p>
-                <p>• "Make it responsive"</p>
+              <div className='text-left space-y-2 text-xs text-slate-300 bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-4 rounded-xl'>
+                <p className='font-semibold text-pink-400 mb-3'>Try asking:</p>
+                <p className='flex items-center gap-2'>
+                  <span className='text-pink-400'>→</span>
+                  "Add dark mode toggle"
+                </p>
+                <p className='flex items-center gap-2'>
+                  <span className='text-pink-400'>→</span>
+                  "Change primary color to blue"
+                </p>
+                <p className='flex items-center gap-2'>
+                  <span className='text-pink-400'>→</span>
+                  "Make it responsive"
+                </p>
               </div>
             </div>
           ) : (
@@ -365,10 +374,10 @@ const WorkingArea = () => {
                 className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] px-4 py-2.5 rounded-lg ${
+                  className={`max-w-[85%] px-4 py-2.5 rounded-xl ${
                     msg.sender === 'user'
-                      ? 'bg-slate-800 text-white'
-                      : 'bg-slate-100 text-slate-900 border border-slate-200'
+                      ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25'
+                      : 'bg-slate-800/80 backdrop-blur-sm text-slate-100 border border-slate-700'
                   }`}
                 >
                   <p className='text-sm leading-relaxed whitespace-pre-wrap break-words'>
@@ -377,15 +386,15 @@ const WorkingArea = () => {
                   
                   {msg.isLoading && (
                     <div className='flex gap-1 mt-2'>
-                      <div className='w-2 h-2 bg-slate-400 rounded-full animate-bounce' style={{ animationDelay: '0ms' }}></div>
-                      <div className='w-2 h-2 bg-slate-400 rounded-full animate-bounce' style={{ animationDelay: '150ms' }}></div>
-                      <div className='w-2 h-2 bg-slate-400 rounded-full animate-bounce' style={{ animationDelay: '300ms' }}></div>
+                      <div className='w-2 h-2 bg-pink-400 rounded-full animate-bounce' style={{ animationDelay: '0ms' }}></div>
+                      <div className='w-2 h-2 bg-pink-400 rounded-full animate-bounce' style={{ animationDelay: '150ms' }}></div>
+                      <div className='w-2 h-2 bg-pink-400 rounded-full animate-bounce' style={{ animationDelay: '300ms' }}></div>
                     </div>
                   )}
 
                   {!msg.isLoading && (
                     <span className={`text-xs mt-1 block ${
-                      msg.sender === 'user' ? 'text-slate-300' : 'text-slate-500'
+                      msg.sender === 'user' ? 'text-pink-100' : 'text-slate-500'
                     }`}>
                       {msg.timestamp.toLocaleTimeString([], { 
                         hour: '2-digit', 
@@ -400,7 +409,8 @@ const WorkingArea = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className='p-3 border-t border-slate-200 bg-white'>
+        {/* Input */}
+        <div className='p-3 border-t border-slate-800 bg-slate-900'>
           <form onSubmit={handleSubmit} className='flex gap-2'>
             <input
               type="text"
@@ -408,43 +418,49 @@ const WorkingArea = () => {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Add dark mode, change colors..."
               disabled={createProject.isPending}
-              className='flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent disabled:bg-slate-50 disabled:cursor-not-allowed'
+              className='flex-1 px-4 py-3 text-sm bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed'
             />
             <button
               type='submit'
               disabled={!prompt.trim() || createProject.isPending}
-              className='px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
+              className='group relative px-5 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden'
             >
-              {createProject.isPending ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <span className='hidden sm:inline'>...</span>
-                </>
-              ) : (
-                <>
-                  <Send className='w-4 h-4' />
-                  <span className='hidden sm:inline'>Send</span>
-                </>
-              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-rose-500 transition-all duration-300 group-hover:scale-105"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-rose-400 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300"></div>
+              
+              <div className='relative flex items-center gap-2 text-white'>
+                {createProject.isPending ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span className='hidden sm:inline'>...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className='w-4 h-4' />
+                    <span className='hidden sm:inline'>Send</span>
+                  </>
+                )}
+              </div>
             </button>
           </form>
         </div>
       </div>
 
       {/* RIGHT SECTION - Code & Preview */}
-      <div className='flex-1 h-screen flex flex-col bg-slate-50'>
+      <div className='flex-1 h-screen flex flex-col bg-slate-950'>
         
-        <div className='w-full h-12 bg-white border-b border-slate-200 flex items-center justify-between px-4'>
+        {/* Top Bar */}
+        <div className='w-full h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4'>
           <div className='flex gap-2'>
             <button
               onClick={() => setActiveTab('code')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
                 activeTab === 'code'
-                  ? 'bg-slate-800 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
               }`}
             >
               <Code className='w-4 h-4' />
@@ -454,10 +470,10 @@ const WorkingArea = () => {
             {isMainAppFile && (
               <button
                 onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
                   activeTab === 'preview'
-                    ? 'bg-slate-800 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
                 <Eye className='w-4 h-4' />
@@ -468,22 +484,20 @@ const WorkingArea = () => {
 
           {currentCode && (
             <div className='flex gap-2 items-center'>
-              {/* ✅ Unsaved indicator */}
               {hasUnsavedChanges && (
-                <span className='text-xs text-orange-600 font-medium flex items-center gap-1'>
-                  <span className='w-2 h-2 bg-orange-600 rounded-full animate-pulse'></span>
+                <span className='text-xs text-orange-400 font-medium flex items-center gap-1'>
+                  <span className='w-2 h-2 bg-orange-400 rounded-full animate-pulse'></span>
                   Unsaved
                 </span>
               )}
               
-              {/* ✅ Save button */}
               <button
                 onClick={handleManualSave}
                 disabled={!hasUnsavedChanges || isSaving}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-semibold text-sm transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
                   hasUnsavedChanges && !isSaving
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25'
+                    : 'bg-slate-800 text-slate-500 cursor-not-allowed'
                 }`}
                 title={hasUnsavedChanges ? 'Save (Ctrl+S)' : 'No changes to save'}
               >
@@ -505,38 +519,43 @@ const WorkingArea = () => {
                 )}
               </button>
               
-             
-              
               <button
-              onClick={()=>navigate(`/live/${id}`)}
-                className='flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm transition-colors'
+                onClick={() => navigate(`/live/${id}`)}
+                className='group relative flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all overflow-hidden'
               >
-                <ExternalLink className='w-4 h-4'  />
-                <span className='hidden sm:inline'>Live</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300 group-hover:scale-105"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300"></div>
+                
+                <div className='relative flex items-center gap-2 text-white'>
+                  <ExternalLink className='w-4 h-4' />
+                  <span className='hidden sm:inline'>Live</span>
+                </div>
               </button>
             </div>
           )}
         </div>
 
+        {/* Editor/Preview Area */}
         <div className='flex-1 overflow-hidden'>
           {activeTab === 'code' ? (
-            <div className='h-full flex flex-col bg-slate-900'>
-              <div className='px-4 py-2 bg-slate-800 text-white text-sm border-b border-slate-700 flex justify-between items-center'>
+            <div className='h-full flex flex-col bg-[#1e1e1e]'>
+              <div className='px-4 py-2 bg-slate-900 text-white text-sm border-b border-slate-800 flex justify-between items-center'>
                 <div className='flex items-center gap-2'>
-                  <span className='font-mono'>{activeFile}</span>
+                  <Code className='w-4 h-4 text-pink-400' />
+                  <span className='font-mono text-slate-300'>{activeFile}</span>
                   {hasUnsavedChanges && (
-                    <span className='text-xs bg-orange-600 text-white px-2 py-0.5 rounded'>
+                    <span className='text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded'>
                       Modified
                     </span>
                   )}
                 </div>
-                kj
+                
                 {deployedUrl && (
                   <a 
                     href={deployedUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className='text-xs text-green-400 hover:text-green-300 flex items-center gap-1'
+                    className='text-xs text-green-400 hover:text-green-300 flex items-center gap-1 transition-colors'
                   >
                     <ExternalLink className='w-3 h-3' />
                     View Live
@@ -565,8 +584,8 @@ const WorkingArea = () => {
                   }}
                 />
               ) : (
-                <div className='flex flex-col items-center justify-center h-full text-slate-400'>
-                  <Code className='w-16 h-16 mb-4 opacity-50' />
+                <div className='flex flex-col items-center justify-center h-full text-slate-400 bg-slate-950'>
+                  <Code className='w-16 h-16 mb-4 opacity-30' />
                   <p className='text-sm'>No code available</p>
                   <p className='text-xs text-slate-500 mt-2'>Start by asking AI to generate something</p>
                 </div>
@@ -583,10 +602,10 @@ const WorkingArea = () => {
                   className='w-full h-full border-0'
                 />
               ) : (
-                <div className='flex flex-col items-center justify-center h-full text-slate-500'>
-                  <Eye className='w-16 h-16 mb-4 opacity-50' />
+                <div className='flex flex-col items-center justify-center h-full bg-slate-950 text-slate-400'>
+                  <Eye className='w-16 h-16 mb-4 opacity-30' />
                   <p className='text-sm'>No preview available</p>
-                  <p className='text-xs text-slate-400 mt-2'>Code will render here</p>
+                  <p className='text-xs text-slate-500 mt-2'>Code will render here</p>
                 </div>
               )}
             </div>

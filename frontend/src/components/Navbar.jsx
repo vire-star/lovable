@@ -70,7 +70,7 @@ const Navbar = () => {
                     </span>
                   </div>
                 </button>
-                <button
+                {/* <button
                   onClick={() => navigate('/offers')}
                   className='group relative px-4 py-2 rounded-lg overflow-hidden transition-all duration-300'
                 >
@@ -82,7 +82,7 @@ const Navbar = () => {
                       My Offers
                     </span>
                   </div>
-                </button>
+                </button> */}
                 
                 {/* User Profile Popover */}
                 <Popover>
