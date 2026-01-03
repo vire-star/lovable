@@ -5,9 +5,13 @@ import Navbar from './components/Navbar'
 import { useLocation } from 'react-router-dom'
 
 const App = () => {
-  const hiddenRoutes = ['/login', '/register']
-  const location = useLocation()
-  const shouldHideNavbar = hiddenRoutes.includes(location.pathname)
+  const hiddenRoutes = ['/login', '/register', '/signup', '/live']
+const location = useLocation()
+
+const shouldHideNavbar = hiddenRoutes.some(route => 
+  location.pathname.startsWith(route)
+)
+
   return (
     <div>
       {!shouldHideNavbar && <Navbar/>}
