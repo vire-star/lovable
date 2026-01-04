@@ -8,7 +8,8 @@ import {
   FolderOpen,
   Plus,
   Trash2,
-  FileCode
+  FileCode,
+  X
 } from 'lucide-react'
 
 const FileTreeItem = ({ 
@@ -18,13 +19,13 @@ const FileTreeItem = ({
   activeFile, 
   onDelete, 
   children,
-  hasChildren 
+  hasChildren,
+  onMobileClose
 }) => {
   const [isExpanded, setIsExpanded] = useState(true)
   const isFolder = file.type === 'folder'
   const isActive = activeFile === file.path
 
-  // Get file icon based on extension
   const getFileIcon = () => {
     if (isFolder) {
       return isExpanded ? (
@@ -48,6 +49,18 @@ const FileTreeItem = ({
     }
   }
 
+  const handleSelect = () => {
+    if (isFolder) {
+      setIsExpanded(!isExpanded)
+    } else {
+      onSelect(file)
+      // Close mobile sidebar after selection
+      if (window.innerWidth < 768 && onMobileClose) {
+        onMobileClose()
+      }
+    }
+  }
+
   return (
     <div>
       <div
@@ -57,13 +70,7 @@ const FileTreeItem = ({
             : 'text-slate-300 hover:bg-slate-800/50'
         }`}
         style={{ paddingLeft: `${level * 12 + 8}px` }}
-        onClick={() => {
-          if (isFolder) {
-            setIsExpanded(!isExpanded)
-          } else {
-            onSelect(file)
-          }
-        }}
+        onClick={handleSelect}
       >
         {isFolder && (
           <button 
@@ -87,14 +94,12 @@ const FileTreeItem = ({
         
         <span className='flex-1 text-sm font-medium truncate'>{file.name}</span>
         
-        {/* File count for folders */}
         {isFolder && hasChildren > 0 && (
           <span className='text-xs text-slate-500 mr-1 bg-slate-800 px-1.5 py-0.5 rounded'>
             {hasChildren}
           </span>
         )}
         
-        {/* Delete button */}
         {!isFolder && (
           <button
             onClick={(e) => {
@@ -108,7 +113,6 @@ const FileTreeItem = ({
         )}
       </div>
       
-      {/* Children */}
       {isFolder && isExpanded && (
         <div>
           {children}
@@ -127,7 +131,8 @@ const FileTreeItem = ({
 }
 
 const FileTree = ({ files, activeFile, onFileSelect, onDelete, onCreate }) => {
-  // Build tree structure from flat array
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
+
   const buildTree = (files) => {
     const tree = {}
     
@@ -154,7 +159,6 @@ const FileTree = ({ files, activeFile, onFileSelect, onDelete, onCreate }) => {
     return tree
   }
 
-  // Recursive render with child count
   const renderTree = (tree, level = 0) => {
     return Object.values(tree).map(node => {
       const childrenArray = Object.values(node.children)
@@ -169,6 +173,7 @@ const FileTree = ({ files, activeFile, onFileSelect, onDelete, onCreate }) => {
           activeFile={activeFile}
           onDelete={onDelete}
           hasChildren={hasChildren}
+          onMobileClose={() => setIsMobileOpen(false)}
         >
           {hasChildren > 0 && renderTree(node.children, level + 1)}
         </FileTreeItem>
@@ -179,48 +184,89 @@ const FileTree = ({ files, activeFile, onFileSelect, onDelete, onCreate }) => {
   const tree = buildTree(files)
 
   return (
-    <div className='w-64 h-full bg-slate-900 border-r border-slate-800 flex flex-col'>
-      {/* Header */}
-      <div className='px-3 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/50'>
-        <div className='flex items-center gap-2'>
-          <Folder className='w-4 h-4 text-pink-400' />
-          <span className='text-sm font-semibold text-white'>Files</span>
-        </div>
-        <button
-          onClick={onCreate}
-          className='p-1.5 hover:bg-slate-800 rounded-lg transition-colors group'
-          title='Create file'
-        >
-          <Plus className='w-4 h-4 text-slate-400 group-hover:text-pink-400 transition-colors' />
-        </button>
-      </div>
-      
-      {/* File list */}
-      <div className='flex-1 overflow-y-auto py-2 px-2'>
-        {Object.keys(tree).length > 0 ? (
-          renderTree(tree)
-        ) : (
-          <div className='flex flex-col items-center justify-center h-full text-center px-4'>
-            <div className='relative mb-4'>
-              <div className='w-16 h-16 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-full flex items-center justify-center backdrop-blur-sm'>
-                <Folder className='w-8 h-8 text-pink-400' />
-              </div>
-              <div className='absolute inset-0 bg-pink-500/20 blur-xl rounded-full animate-pulse'></div>
-            </div>
-            <p className='text-sm text-slate-400'>No files yet</p>
-            <p className='text-xs text-slate-500 mt-1'>Create your first file</p>
-          </div>
-        )}
-      </div>
+    <>
+      {/* Mobile Toggle Button */}
+      <button
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className='md:hidden fixed top-20 left-4 z-30 p-2 bg-slate-900 border border-slate-800 rounded-lg shadow-lg hover:bg-slate-800 transition-colors'
+        aria-label='Toggle file tree'
+      >
+        <Folder className='w-5 h-5 text-pink-400' />
+      </button>
 
-      {/* Footer stats */}
-      <div className='px-3 py-2 border-t border-slate-800 bg-slate-900/50'>
-        <div className='flex items-center justify-between text-xs text-slate-500'>
-          <span>{files.filter(f => f.type === 'file').length} files</span>
-          <span>{files.filter(f => f.type === 'folder').length} folders</span>
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div 
+          className='md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-20'
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* File Tree Sidebar */}
+      <div
+        className={`
+          fixed md:relative 
+          top-0 left-0 bottom-0 
+          w-64 h-full 
+          bg-slate-900 border-r border-slate-800 
+          flex flex-col
+          z-30
+          transform transition-transform duration-300 ease-in-out
+          md:transform-none
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+      >
+        {/* Header */}
+        <div className='px-3 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/50'>
+          <div className='flex items-center gap-2'>
+            <Folder className='w-4 h-4 text-pink-400' />
+            <span className='text-sm font-semibold text-white'>Files</span>
+          </div>
+          <div className='flex items-center gap-1'>
+            <button
+              onClick={onCreate}
+              className='p-1.5 hover:bg-slate-800 rounded-lg transition-colors group'
+              title='Create file'
+            >
+              <Plus className='w-4 h-4 text-slate-400 group-hover:text-pink-400 transition-colors' />
+            </button>
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className='md:hidden p-1.5 hover:bg-slate-800 rounded-lg transition-colors'
+              aria-label='Close file tree'
+            >
+              <X className='w-4 h-4 text-slate-400' />
+            </button>
+          </div>
+        </div>
+        
+        {/* File list */}
+        <div className='flex-1 overflow-y-auto py-2 px-2'>
+          {Object.keys(tree).length > 0 ? (
+            renderTree(tree)
+          ) : (
+            <div className='flex flex-col items-center justify-center h-full text-center px-4'>
+              <div className='relative mb-4'>
+                <div className='w-16 h-16 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-full flex items-center justify-center backdrop-blur-sm'>
+                  <Folder className='w-8 h-8 text-pink-400' />
+                </div>
+                <div className='absolute inset-0 bg-pink-500/20 blur-xl rounded-full animate-pulse'></div>
+              </div>
+              <p className='text-sm text-slate-400'>No files yet</p>
+              <p className='text-xs text-slate-500 mt-1'>Create your first file</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer stats */}
+        <div className='px-3 py-2 border-t border-slate-800 bg-slate-900/50'>
+          <div className='flex items-center justify-between text-xs text-slate-500'>
+            <span>{files.filter(f => f.type === 'file').length} files</span>
+            <span>{files.filter(f => f.type === 'folder').length} folders</span>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useGetProjectHook, useProjectHook } from '@/hooks/project.hook'
 import Editor from '@monaco-editor/react'
-import { Send, Code, Eye, MessageSquare, ExternalLink, Download, Save, Sparkles } from 'lucide-react'
+import { Send, Code, Eye, MessageSquare, ExternalLink, Save, Sparkles, X, Menu } from 'lucide-react'
 import { getPreviewHTML } from '@/hooks/livepreview'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCodeStore } from '@/Store/CodeStore'
@@ -21,6 +21,7 @@ const WorkingArea = () => {
   const [activeFile, setActiveFile] = useState('src/App.jsx')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false) // Mobile chat toggle
   const { code, setCode } = useCodeStore()
   const messagesEndRef = useRef(null)
   
@@ -78,6 +79,18 @@ const WorkingArea = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Prevent scroll when mobile chat is open
+  useEffect(() => {
+    if (isChatOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isChatOpen])
 
   const handleFileSelect = useCallback((file) => {
     if (file.type === 'file') {
@@ -304,35 +317,71 @@ const WorkingArea = () => {
   const isMainAppFile = activeFile === 'src/App.jsx' || activeFile === 'App.jsx'
 
   return (
-    <div className='h-screen w-full flex bg-slate-950'>
-      {/* File Tree */}
-      <FileTree
-        files={files}
-        activeFile={activeFile}
-        onFileSelect={handleFileSelect}
-        onDelete={(path) => {
-          console.log('Delete:', path)
-        }}
-        onCreate={() => {
-          console.log('Create new file')
-        }}
-      />
+    <div className='h-screen w-full flex flex-col lg:flex-row bg-slate-950 overflow-hidden'>
+      {/* File Tree - Hidden on mobile, visible on desktop */}
+      <div className='hidden lg:block'>
+        <FileTree
+          files={files}
+          activeFile={activeFile}
+          onFileSelect={handleFileSelect}
+          onDelete={(path) => {
+            console.log('Delete:', path)
+          }}
+          onCreate={() => {
+            console.log('Create new file')
+          }}
+        />
+      </div>
 
-      {/* LEFT SIDEBAR - Chat */}
-      <div className='w-full sm:w-[400px] lg:w-[30%] h-full flex flex-col border-r border-slate-800 bg-slate-900'>
-        
+      {/* Mobile File Tree (uses FileTree's built-in mobile support) */}
+      <div className='lg:hidden'>
+        <FileTree
+          files={files}
+          activeFile={activeFile}
+          onFileSelect={handleFileSelect}
+          onDelete={(path) => {
+            console.log('Delete:', path)
+          }}
+          onCreate={() => {
+            console.log('Create new file')
+          }}
+        />
+      </div>
+
+      {/* Chat Sidebar - Desktop: Always visible, Mobile: Toggleable */}
+      <div className={`
+        fixed lg:relative
+        inset-y-0 left-0
+        w-full sm:w-[400px] lg:w-[30%]
+        h-full
+        flex flex-col
+        border-r border-slate-800 bg-slate-900
+        z-30
+        transform transition-transform duration-300 ease-in-out
+        lg:transform-none
+        ${isChatOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
         {/* Header */}
-        <div className='px-4 py-3 border-b border-slate-800 bg-slate-900/50'>
+        <div className='px-4 py-3 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
             <div className='relative'>
               <MessageSquare className='w-5 h-5 text-pink-400' />
               <div className='absolute inset-0 blur-sm bg-pink-500/30 rounded-full'></div>
             </div>
-            <h2 className='text-lg font-bold text-white'>AI Assistant</h2>
+            <div>
+              <h2 className='text-lg font-bold text-white'>AI Assistant</h2>
+              <p className='text-xs text-slate-400'>
+                {data?.project?.name || 'Project'} • v{data?.project?.versions?.length || 1}
+              </p>
+            </div>
           </div>
-          <p className='text-xs text-slate-400 mt-1'>
-            {data?.project?.name || 'Project'} • Version {data?.project?.versions?.length || 1}
-          </p>
+          {/* Close button for mobile */}
+          <button
+            onClick={() => setIsChatOpen(false)}
+            className='lg:hidden p-2 hover:bg-slate-800 rounded-lg transition-colors'
+          >
+            <X className='w-5 h-5 text-slate-400' />
+          </button>
         </div>
 
         {/* Messages */}
@@ -416,32 +465,26 @@ const WorkingArea = () => {
               type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Add dark mode, change colors..."
+              placeholder="Tell me what to build..."
               disabled={createProject.isPending}
               className='flex-1 px-4 py-3 text-sm bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed'
             />
             <button
               type='submit'
               disabled={!prompt.trim() || createProject.isPending}
-              className='group relative px-5 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden'
+              className='group relative px-4 lg:px-5 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden'
             >
               <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-rose-500 transition-all duration-300 group-hover:scale-105"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-rose-400 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300"></div>
               
               <div className='relative flex items-center gap-2 text-white'>
                 {createProject.isPending ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span className='hidden sm:inline'>...</span>
-                  </>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
                 ) : (
-                  <>
-                    <Send className='w-4 h-4' />
-                    <span className='hidden sm:inline'>Send</span>
-                  </>
+                  <Send className='w-4 h-4' />
                 )}
               </div>
             </button>
@@ -449,43 +492,63 @@ const WorkingArea = () => {
         </div>
       </div>
 
-      {/* RIGHT SECTION - Code & Preview */}
-      <div className='flex-1 h-screen flex flex-col bg-slate-950'>
-        
+      {/* Mobile Chat Overlay */}
+      {isChatOpen && (
+        <div 
+          className='lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-20'
+          onClick={() => setIsChatOpen(false)}
+        />
+      )}
+
+      {/* Code & Preview Section */}
+      <div className='flex-1 flex flex-col bg-slate-950 min-h-0'>
         {/* Top Bar */}
-        <div className='w-full h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4'>
-          <div className='flex gap-2'>
+        <div className='w-full h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2 sm:px-4 gap-2'>
+          {/* Left: Chat toggle + Tabs */}
+          <div className='flex items-center gap-2'>
+            {/* Mobile chat toggle */}
             <button
-              onClick={() => setActiveTab('code')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                activeTab === 'code'
-                  ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
+              onClick={() => setIsChatOpen(true)}
+              className='lg:hidden p-2 hover:bg-slate-800 rounded-lg transition-colors'
             >
-              <Code className='w-4 h-4' />
-              Code
+              <MessageSquare className='w-5 h-5 text-pink-400' />
             </button>
-            
-            {isMainAppFile && (
+
+            {/* Tabs */}
+            <div className='flex gap-1 sm:gap-2'>
               <button
-                onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                  activeTab === 'preview'
+                onClick={() => setActiveTab('code')}
+                className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
+                  activeTab === 'code'
                     ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25'
                     : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                <Eye className='w-4 h-4' />
-                Preview
+                <Code className='w-4 h-4' />
+                <span className='hidden sm:inline'>Code</span>
               </button>
-            )}
+              
+              {isMainAppFile && (
+                <button
+                  onClick={() => setActiveTab('preview')}
+                  className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
+                    activeTab === 'preview'
+                      ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  <Eye className='w-4 h-4' />
+                  <span className='hidden sm:inline'>Preview</span>
+                </button>
+              )}
+            </div>
           </div>
 
+          {/* Right: Actions */}
           {currentCode && (
-            <div className='flex gap-2 items-center'>
+            <div className='flex gap-1 sm:gap-2 items-center'>
               {hasUnsavedChanges && (
-                <span className='text-xs text-orange-400 font-medium flex items-center gap-1'>
+                <span className='hidden sm:flex text-xs text-orange-400 font-medium items-center gap-1'>
                   <span className='w-2 h-2 bg-orange-400 rounded-full animate-pulse'></span>
                   Unsaved
                 </span>
@@ -494,39 +557,34 @@ const WorkingArea = () => {
               <button
                 onClick={handleManualSave}
                 disabled={!hasUnsavedChanges || isSaving}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
                   hasUnsavedChanges && !isSaving
                     ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25'
                     : 'bg-slate-800 text-slate-500 cursor-not-allowed'
                 }`}
-                title={hasUnsavedChanges ? 'Save (Ctrl+S)' : 'No changes to save'}
+                title={hasUnsavedChanges ? 'Save (Ctrl+S)' : 'No changes'}
               >
                 {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span className='hidden sm:inline'>Saving...</span>
-                  </>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
                 ) : (
-                  <>
-                    <Save className='w-4 h-4' />
-                    <span className='hidden sm:inline'>
-                      {hasUnsavedChanges ? 'Save' : 'Saved'}
-                    </span>
-                  </>
+                  <Save className='w-4 h-4' />
                 )}
+                <span className='hidden sm:inline'>
+                  {hasUnsavedChanges ? 'Save' : 'Saved'}
+                </span>
               </button>
               
               <button
                 onClick={() => navigate(`/live/${id}`)}
-                className='group relative flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all overflow-hidden'
+                className='group relative flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all overflow-hidden'
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300 group-hover:scale-105"></div>
                 <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300"></div>
                 
-                <div className='relative flex items-center gap-2 text-white'>
+                <div className='relative flex items-center gap-1 sm:gap-2 text-white'>
                   <ExternalLink className='w-4 h-4' />
                   <span className='hidden sm:inline'>Live</span>
                 </div>
@@ -539,12 +597,12 @@ const WorkingArea = () => {
         <div className='flex-1 overflow-hidden'>
           {activeTab === 'code' ? (
             <div className='h-full flex flex-col bg-[#1e1e1e]'>
-              <div className='px-4 py-2 bg-slate-900 text-white text-sm border-b border-slate-800 flex justify-between items-center'>
-                <div className='flex items-center gap-2'>
-                  <Code className='w-4 h-4 text-pink-400' />
-                  <span className='font-mono text-slate-300'>{activeFile}</span>
+              <div className='px-2 sm:px-4 py-2 bg-slate-900 text-white text-xs sm:text-sm border-b border-slate-800 flex justify-between items-center'>
+                <div className='flex items-center gap-2 min-w-0 flex-1'>
+                  <Code className='w-4 h-4 text-pink-400 flex-shrink-0' />
+                  <span className='font-mono text-slate-300 truncate'>{activeFile}</span>
                   {hasUnsavedChanges && (
-                    <span className='text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded'>
+                    <span className='text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded flex-shrink-0'>
                       Modified
                     </span>
                   )}
@@ -555,7 +613,7 @@ const WorkingArea = () => {
                     href={deployedUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className='text-xs text-green-400 hover:text-green-300 flex items-center gap-1 transition-colors'
+                    className='hidden sm:flex text-xs text-green-400 hover:text-green-300 items-center gap-1 transition-colors'
                   >
                     <ExternalLink className='w-3 h-3' />
                     View Live
@@ -570,8 +628,8 @@ const WorkingArea = () => {
                   onChange={handleEditorChange}
                   theme="vs-dark"
                   options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
+                    minimap: { enabled: window.innerWidth > 768 },
+                    fontSize: window.innerWidth < 640 ? 12 : 14,
                     lineNumbers: 'on',
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
@@ -584,10 +642,10 @@ const WorkingArea = () => {
                   }}
                 />
               ) : (
-                <div className='flex flex-col items-center justify-center h-full text-slate-400 bg-slate-950'>
-                  <Code className='w-16 h-16 mb-4 opacity-30' />
-                  <p className='text-sm'>No code available</p>
-                  <p className='text-xs text-slate-500 mt-2'>Start by asking AI to generate something</p>
+                <div className='flex flex-col items-center justify-center h-full text-slate-400 bg-slate-950 p-4'>
+                  <Code className='w-12 sm:w-16 h-12 sm:h-16 mb-4 opacity-30' />
+                  <p className='text-xs sm:text-sm'>No code available</p>
+                  <p className='text-xs text-slate-500 mt-2 text-center'>Start by asking AI to generate something</p>
                 </div>
               )}
             </div>
@@ -602,9 +660,9 @@ const WorkingArea = () => {
                   className='w-full h-full border-0'
                 />
               ) : (
-                <div className='flex flex-col items-center justify-center h-full bg-slate-950 text-slate-400'>
-                  <Eye className='w-16 h-16 mb-4 opacity-30' />
-                  <p className='text-sm'>No preview available</p>
+                <div className='flex flex-col items-center justify-center h-full bg-slate-950 text-slate-400 p-4'>
+                  <Eye className='w-12 sm:w-16 h-12 sm:h-16 mb-4 opacity-30' />
+                  <p className='text-xs sm:text-sm'>No preview available</p>
                   <p className='text-xs text-slate-500 mt-2'>Code will render here</p>
                 </div>
               )}
