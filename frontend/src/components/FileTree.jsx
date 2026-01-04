@@ -54,7 +54,6 @@ const FileTreeItem = ({
       setIsExpanded(!isExpanded)
     } else {
       onSelect(file)
-      // Close mobile sidebar after selection
       if (window.innerWidth < 768 && onMobileClose) {
         onMobileClose()
       }
@@ -185,16 +184,16 @@ const FileTree = ({ files, activeFile, onFileSelect, onDelete, onCreate }) => {
 
   return (
     <>
-      {/* Mobile Toggle Button */}
+      {/* Mobile Toggle Button (z-20) */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className='md:hidden fixed top-20 left-4 z-30 p-2 bg-slate-900 border border-slate-800 rounded-lg shadow-lg hover:bg-slate-800 transition-colors'
+        className='md:hidden fixed top-20 left-4 z-20 p-2 bg-slate-900 border border-slate-800 rounded-lg shadow-lg hover:bg-slate-800 transition-colors'
         aria-label='Toggle file tree'
       >
         <Folder className='w-5 h-5 text-pink-400' />
       </button>
 
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay (z-20) */}
       {isMobileOpen && (
         <div 
           className='md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-20'
@@ -202,7 +201,7 @@ const FileTree = ({ files, activeFile, onFileSelect, onDelete, onCreate }) => {
         />
       )}
 
-      {/* File Tree Sidebar */}
+      {/* File Tree Sidebar (z-30 mobile, z-auto desktop) */}
       <div
         className={`
           fixed md:relative 
@@ -211,6 +210,7 @@ const FileTree = ({ files, activeFile, onFileSelect, onDelete, onCreate }) => {
           bg-slate-900 border-r border-slate-800 
           flex flex-col
           z-30
+          md:z-auto
           transform transition-transform duration-300 ease-in-out
           md:transform-none
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}

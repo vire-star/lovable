@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useGetProjectHook, useProjectHook } from '@/hooks/project.hook'
 import Editor from '@monaco-editor/react'
-import { Send, Code, Eye, MessageSquare, ExternalLink, Save, Sparkles, X, Menu } from 'lucide-react'
+import { Send, Code, Eye, MessageSquare, ExternalLink, Save, Sparkles, X } from 'lucide-react'
 import { getPreviewHTML } from '@/hooks/livepreview'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCodeStore } from '@/Store/CodeStore'
@@ -21,7 +21,7 @@ const WorkingArea = () => {
   const [activeFile, setActiveFile] = useState('src/App.jsx')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [isChatOpen, setIsChatOpen] = useState(false) // Mobile chat toggle
+  const [isChatOpen, setIsChatOpen] = useState(false)
   const { code, setCode } = useCodeStore()
   const messagesEndRef = useRef(null)
   
@@ -80,7 +80,6 @@ const WorkingArea = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Prevent scroll when mobile chat is open
   useEffect(() => {
     if (isChatOpen) {
       document.body.style.overflow = 'hidden'
@@ -317,68 +316,67 @@ const WorkingArea = () => {
   const isMainAppFile = activeFile === 'src/App.jsx' || activeFile === 'App.jsx'
 
   return (
-    <div className='h-screen w-full flex flex-col lg:flex-row bg-slate-950 overflow-hidden'>
-      {/* File Tree - Hidden on mobile, visible on desktop */}
-      <div className='hidden lg:block'>
+    <div className='h-screen w-full flex bg-slate-950 overflow-hidden relative'>
+      {/* File Tree - Desktop only (z-10) */}
+      <div className='hidden lg:block relative z-10'>
         <FileTree
           files={files}
           activeFile={activeFile}
           onFileSelect={handleFileSelect}
-          onDelete={(path) => {
-            console.log('Delete:', path)
-          }}
-          onCreate={() => {
-            console.log('Create new file')
-          }}
+          onDelete={(path) => console.log('Delete:', path)}
+          onCreate={() => console.log('Create new file')}
         />
       </div>
 
-      {/* Mobile File Tree (uses FileTree's built-in mobile support) */}
+      {/* Mobile File Tree (z-20) */}
       <div className='lg:hidden'>
         <FileTree
           files={files}
           activeFile={activeFile}
           onFileSelect={handleFileSelect}
-          onDelete={(path) => {
-            console.log('Delete:', path)
-          }}
-          onCreate={() => {
-            console.log('Create new file')
-          }}
+          onDelete={(path) => console.log('Delete:', path)}
+          onCreate={() => console.log('Create new file')}
         />
       </div>
 
-      {/* Chat Sidebar - Desktop: Always visible, Mobile: Toggleable */}
+      {/* Chat Overlay Backdrop (z-40) */}
+      {isChatOpen && (
+        <div 
+          className='lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40'
+          onClick={() => setIsChatOpen(false)}
+        />
+      )}
+
+      {/* Chat Sidebar (z-50 on mobile, relative on desktop) */}
       <div className={`
-        fixed lg:relative
-        inset-y-0 left-0
-        w-full sm:w-[400px] lg:w-[30%]
+        ${isChatOpen ? 'fixed' : 'hidden'} 
+        lg:relative lg:flex
+        inset-0 lg:inset-auto
+        w-full sm:w-[400px] lg:w-[400px] xl:w-[30%]
         h-full
-        flex flex-col
+        flex-col
         border-r border-slate-800 bg-slate-900
-        z-30
-        transform transition-transform duration-300 ease-in-out
-        lg:transform-none
-        ${isChatOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        z-50
+        lg:z-auto
       `}>
         {/* Header */}
         <div className='px-4 py-3 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between'>
-          <div className='flex items-center gap-2'>
-            <div className='relative'>
+          <div className='flex items-center gap-2 flex-1 min-w-0'>
+            <div className='relative flex-shrink-0'>
               <MessageSquare className='w-5 h-5 text-pink-400' />
               <div className='absolute inset-0 blur-sm bg-pink-500/30 rounded-full'></div>
             </div>
-            <div>
-              <h2 className='text-lg font-bold text-white'>AI Assistant</h2>
-              <p className='text-xs text-slate-400'>
+            <div className='min-w-0 flex-1'>
+              <h2 className='text-lg font-bold text-white truncate'>AI Assistant</h2>
+              <p className='text-xs text-slate-400 truncate'>
                 {data?.project?.name || 'Project'} • v{data?.project?.versions?.length || 1}
               </p>
             </div>
           </div>
-          {/* Close button for mobile */}
           <button
             onClick={() => setIsChatOpen(false)}
-            className='lg:hidden p-2 hover:bg-slate-800 rounded-lg transition-colors'
+            className='lg:hidden p-2 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0'
+            aria-label="Close chat"
           >
             <X className='w-5 h-5 text-slate-400' />
           </button>
@@ -472,7 +470,7 @@ const WorkingArea = () => {
             <button
               type='submit'
               disabled={!prompt.trim() || createProject.isPending}
-              className='group relative px-4 lg:px-5 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden'
+              className='group relative px-4 lg:px-5 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden flex-shrink-0'
             >
               <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-rose-500 transition-all duration-300 group-hover:scale-105"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-rose-400 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300"></div>
@@ -492,24 +490,17 @@ const WorkingArea = () => {
         </div>
       </div>
 
-      {/* Mobile Chat Overlay */}
-      {isChatOpen && (
-        <div 
-          className='lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-20'
-          onClick={() => setIsChatOpen(false)}
-        />
-      )}
-
       {/* Code & Preview Section */}
-      <div className='flex-1 flex flex-col bg-slate-950 min-h-0'>
+      <div className='flex-1 flex flex-col bg-slate-950 min-h-0 overflow-hidden relative z-0'>
         {/* Top Bar */}
-        <div className='w-full h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2 sm:px-4 gap-2'>
+        <div className='w-full h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2 sm:px-4 gap-2 flex-shrink-0'>
           {/* Left: Chat toggle + Tabs */}
           <div className='flex items-center gap-2'>
             {/* Mobile chat toggle */}
             <button
               onClick={() => setIsChatOpen(true)}
               className='lg:hidden p-2 hover:bg-slate-800 rounded-lg transition-colors'
+              aria-label="Open chat"
             >
               <MessageSquare className='w-5 h-5 text-pink-400' />
             </button>
