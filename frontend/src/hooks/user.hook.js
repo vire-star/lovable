@@ -31,6 +31,7 @@ export const useLoginHook = ()=>{
         },
         onError:(err)=>{
             console.log(err)
+            toast.error(err?.response?.data?.error)
         }
     })
 }
@@ -56,6 +57,7 @@ export const useLogoutHook = ()=>{
         },
         onError:(err)=>{
             console.log(err)
+            toast.error(err?.response?.data?.error)
         }
     })
 }

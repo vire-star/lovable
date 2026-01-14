@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, Code2, Loader2, AlertCircle, Zap, Layers, Palette, ArrowRight, Stars } from 'lucide-react'
+import { useGetUserHook } from '@/hooks/user.hook'
 
 const HomePage = () => {
   const { register, handleSubmit, formState: { errors }, reset, watch } = useForm()
@@ -15,6 +16,9 @@ const HomePage = () => {
   
   const promptValue = watch("prompt", "")
 
+  const {data:userData} = useGetUserHook()
+  const isAuthenticated = ()=>{
+  }
   // Timer for generation
   useEffect(() => {
     let interval
@@ -32,7 +36,10 @@ const HomePage = () => {
   const handleSubmitForm = (data) => {
     setGenerationError(null)
     
-    mutate(
+    if(!userData){
+      navigate('/login')
+    }else{
+      mutate(
       {
         prompt: data.prompt,
         isNewProject: true,
@@ -55,6 +62,7 @@ const HomePage = () => {
         }
       }
     )
+    }
   }
 
   const examplePrompts = [

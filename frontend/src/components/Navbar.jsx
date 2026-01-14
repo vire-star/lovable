@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { useGetUserHook, useLogoutHook } from '@/hooks/user.hook'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, FolderOpen, Loader2, Sparkles, Code2, Menu, X } from 'lucide-react'
+import { LogOut, FolderOpen, Loader2, Sparkles, Code2, Menu, X, Zap, Crown } from 'lucide-react'
 
 const Navbar = () => {
   const user = userStore((state) => state.user)
@@ -17,12 +17,10 @@ const Navbar = () => {
 
   console.log(data)
 
-  // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false)
   }, [navigate])
 
-  // Prevent scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden'
@@ -78,6 +76,26 @@ const Navbar = () => {
             <div className='hidden md:flex items-center gap-4'>
               {data ? (
                 <>
+                  {/* Credits Display */}
+                  <div className='flex items-center gap-3 px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg'>
+                    <div className='relative'>
+                      <Zap className='w-5 h-5 text-yellow-400' />
+                      <div className='absolute inset-0 blur-sm bg-yellow-400/30 rounded-full'></div>
+                    </div>
+                    <div className='flex flex-col'>
+                      <div className='flex items-center gap-2'>
+                        <span className='text-sm font-bold text-white'>
+                          {data?.credits?.available || 0}
+                        </span>
+                        <span className='text-xs text-slate-500'>/</span>
+                        <span className='text-xs text-slate-400'>
+                          {data?.credits?.total || 0}
+                        </span>
+                      </div>
+                      <span className='text-xs text-slate-500'>Credits</span>
+                    </div>
+                  </div>
+
                   {/* My Projects Button */}
                   <button
                     onClick={() => navigate('/projects')}
@@ -88,7 +106,22 @@ const Navbar = () => {
                     <div className='relative flex items-center gap-2'>
                       <FolderOpen className='w-4 h-4 text-slate-400 group-hover:text-pink-400 transition-colors duration-300' />
                       <span className='text-sm font-medium text-slate-300 group-hover:text-white transition-colors duration-300'>
-                        My Projects
+                        Projects
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Upgrade Button */}
+                  <button
+                    onClick={() => navigate('/offers')}
+                    className='group relative px-4 py-2 rounded-lg overflow-hidden transition-all duration-300'
+                  >
+                    <div className='absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                    <div className='absolute inset-0 border border-yellow-500/0 group-hover:border-yellow-500/30 rounded-lg transition-all duration-300'></div>
+                    <div className='relative flex items-center gap-2'>
+                      <Crown className='w-4 h-4 text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300' />
+                      <span className='text-sm font-medium text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300'>
+                        Upgrade
                       </span>
                     </div>
                   </button>
@@ -116,7 +149,6 @@ const Navbar = () => {
                       align='end'
                       sideOffset={8}
                     >
-                      {/* Header with gradient */}
                       <div className='relative px-4 py-4 bg-gradient-to-br from-slate-900 via-slate-900 to-pink-950/20 border-b border-slate-800'>
                         <div className='absolute inset-0 bg-gradient-to-r from-pink-500/5 to-purple-500/5'></div>
                         <div className='relative'>
@@ -129,7 +161,6 @@ const Navbar = () => {
                         </div>
                       </div>
                       
-                      {/* Logout Button */}
                       <div className='p-2'>
                         <button
                           onClick={(e) => {
@@ -156,7 +187,6 @@ const Navbar = () => {
                 </>
               ) : (
                 <div className='flex items-center gap-3'>
-                  {/* Sign In */}
                   <button 
                     onClick={() => navigate('/login')}
                     className='px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200'
@@ -164,7 +194,6 @@ const Navbar = () => {
                     Sign In
                   </button>
                   
-                  {/* Sign Up - Gradient Button */}
                   <button 
                     onClick={() => navigate('/register')}
                     className='group relative px-5 py-2 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105'
@@ -197,7 +226,6 @@ const Navbar = () => {
           </div>
         </div>
         
-        {/* Bottom gradient line */}
         <div className='h-px bg-gradient-to-r from-transparent via-pink-500/30 to-transparent'></div>
       </nav>
 
@@ -220,7 +248,7 @@ const Navbar = () => {
             <>
               {/* User Info */}
               <div className='p-4 border-b border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-pink-950/20'>
-                <div className='flex items-center gap-3'>
+                <div className='flex items-center gap-3 mb-4'>
                   <div className='relative w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 via-rose-500 to-purple-600 flex items-center justify-center shadow-lg shadow-pink-500/25'>
                     <span className='text-lg font-bold text-white'>
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
@@ -233,6 +261,23 @@ const Navbar = () => {
                     <p className='text-xs text-slate-400 truncate'>
                       {user?.email}
                     </p>
+                  </div>
+                </div>
+
+                {/* Credits Display Mobile */}
+                <div className='flex items-center gap-3 px-3 py-2 bg-slate-800/50 rounded-lg'>
+                  <Zap className='w-5 h-5 text-yellow-400' />
+                  <div className='flex-1'>
+                    <div className='flex items-center gap-2'>
+                      <span className='text-sm font-bold text-white'>
+                        {data?.credits?.available || 0}
+                      </span>
+                      <span className='text-xs text-slate-500'>/</span>
+                      <span className='text-xs text-slate-400'>
+                        {data?.credits?.total || 0}
+                      </span>
+                    </div>
+                    <span className='text-xs text-slate-500'>Credits Available</span>
                   </div>
                 </div>
               </div>
@@ -248,6 +293,17 @@ const Navbar = () => {
                 >
                   <FolderOpen className='w-5 h-5 text-pink-400' />
                   <span className='text-sm font-medium'>My Projects</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate('/offers')
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className='w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all'
+                >
+                  <Crown className='w-5 h-5 text-yellow-400' />
+                  <span className='text-sm font-medium'>Upgrade to Pro</span>
                 </button>
               </div>
 

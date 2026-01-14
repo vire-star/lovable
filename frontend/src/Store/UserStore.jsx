@@ -11,13 +11,13 @@ export const userStore = create(
         
         // ✅ Set user
         setUser: (newUser) => {
-          console.log('✅ Setting user:', newUser)
+          // console.log('✅ Setting user:', newUser)
           set({ user: newUser })
         },
         
         // ✅ Clear user - Production safe
         clearUser: () => {
-          console.log('🚪 Clearing user from store')
+          // console.log('🚪 Clearing user from store')
           
           // Clear Zustand state
           set({ user: null })
@@ -30,7 +30,7 @@ export const userStore = create(
             localStorage.removeItem('token')
             sessionStorage.clear()
             
-            console.log('✅ User cleared from localStorage')
+            // console.log('✅ User cleared from localStorage')
           } catch (error) {
             console.error('❌ Failed to clear localStorage:', error)
           }

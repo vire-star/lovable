@@ -18,7 +18,7 @@ export const ProtectRoute = ({children}) => {
     }
 
     if(!data|| isError){
-        return <Navigate to={'/'} replace/>
+        return <Navigate to={'/login'} replace/>
     }
 
     return children

@@ -8,6 +8,8 @@ import { Route, Routes } from 'react-router-dom'
 import { ProtectRoute } from './ProtectRoute'
 import Projects from '@/Pages/Projects'
 import Offers from '@/Pages/Offers'
+import SubscriptionSuccess from '@/Pages/SubscriptionSuccess'
+import SubscriptionCance from '@/Pages/SubscriptionCance'
 
 const MainRoutes = () => {
   return (
@@ -33,7 +35,16 @@ const MainRoutes = () => {
             <Offers/>
           </ProtectRoute>
         }/>
-        
+        <Route path='/subscription-success' element={
+
+          
+            <SubscriptionSuccess/>
+         
+        }/>
+        <Route path='/cancel' element={
+            <SubscriptionCance/>
+        }/>
+
         <Route path='/live/:id' element={<LivePreview/>}/>
     </Routes>
   )
