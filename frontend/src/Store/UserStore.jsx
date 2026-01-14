@@ -6,7 +6,7 @@ import { devtools, persist } from "zustand/middleware"
 export const userStore = create(
   devtools(
     persist(
-      (set, get) => ({
+      (set) => ({
         user: null,
         
         // ✅ Set user
@@ -22,18 +22,8 @@ export const userStore = create(
           // Clear Zustand state
           set({ user: null })
           
-          // ✅ CRITICAL: Clear from localStorage
-          try {
-            localStorage.removeItem('user-storage')
-            
-            // ✅ Also clear any other auth-related items
-            localStorage.removeItem('token')
-            sessionStorage.clear()
-            
-            // console.log('✅ User cleared from localStorage')
-          } catch (error) {
-            console.error('❌ Failed to clear localStorage:', error)
-          }
+        
+         
         }
       }),
       {

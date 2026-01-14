@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, Code2, Loader2, AlertCircle, Zap, Layers, Palette, ArrowRight, Stars } from 'lucide-react'
 import { useGetUserHook } from '@/hooks/user.hook'
+import { userStore } from '@/Store/UserStore'
 
 const HomePage = () => {
   const { register, handleSubmit, formState: { errors }, reset, watch } = useForm()
@@ -16,9 +17,8 @@ const HomePage = () => {
   
   const promptValue = watch("prompt", "")
 
-  const {data:userData} = useGetUserHook()
-  const isAuthenticated = ()=>{
-  }
+ 
+   const user = userStore((state)=>state.user)
   // Timer for generation
   useEffect(() => {
     let interval
@@ -36,7 +36,7 @@ const HomePage = () => {
   const handleSubmitForm = (data) => {
     setGenerationError(null)
     
-    if(!userData){
+    if(!user){
       navigate('/login')
     }else{
       mutate(
