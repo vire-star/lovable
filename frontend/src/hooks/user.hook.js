@@ -31,7 +31,7 @@ export const useLoginHook = ()=>{
         },
         onError:(err)=>{
             console.log(err)
-            toast.error(err?.response?.data?.error)
+            toast.error(err?.response?.data?.message)
         }
     })
 }
@@ -45,19 +45,19 @@ export const useGetUserHook = ()=>{
     })
 }
 
-
-export const useLogoutHook = ()=>{
-    const queryClient = useQueryClient()
-    return useMutation({
-        mutationFn:logoutApi,
-        
-        onSuccess:(data)=>{
-            console.log(data)
-            queryClient.invalidateQueries(['getUser'])
-        },
-        onError:(err)=>{
-            console.log(err)
-            toast.error(err?.response?.data?.error)
-        }
-    })
+export const useLogoutHook = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: logoutApi,
+    onSuccess: (data) => {
+      console.log(data)
+      // Clear the query data immediately, not just invalidate
+      queryClient.removeQueries(['getUser'])
+      queryClient.clear() // Optional: clear all cache
+    },
+    onError: (err) => {
+      console.log(err)
+      toast.error(err?.response?.data?.message)
+    }
+  })
 }

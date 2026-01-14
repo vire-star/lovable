@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { useGetUserHook, useLogoutHook } from '@/hooks/user.hook'
 import { useNavigate } from 'react-router-dom'
 import { LogOut, FolderOpen, Loader2, Sparkles, Code2, Menu, X, Zap, Crown } from 'lucide-react'
+import { toast } from 'sonner'
 
 const Navbar = () => {
   const user = userStore((state) => state.user)
@@ -15,10 +16,11 @@ const Navbar = () => {
   const { data } = useGetUserHook()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  console.log(data)
+  // console.log(data)
 
   useEffect(() => {
     setIsMobileMenuOpen(false)
+    data
   }, [navigate])
 
   useEffect(() => {
@@ -33,11 +35,12 @@ const Navbar = () => {
   }, [isMobileMenuOpen])
 
   const logoutHandler = () => {
-    console.log('🚪 Logout initiated')
+    // console.log('🚪 Logout initiated')
     
     logout({}, {
       onSuccess: (data) => {
-        console.log('✅ Logout success:', data)
+        // console.log('✅ Logout success:', data)
+        toast.success("Logged Out Successfully")
         clearUser()
         setIsMobileMenuOpen(false)
         setTimeout(() => navigate('/'), 100)
@@ -74,7 +77,7 @@ const Navbar = () => {
             
             {/* Desktop Menu */}
             <div className='hidden md:flex items-center gap-4'>
-              {user ? (
+              {data ? (
                 <>
                   {/* Credits Display */}
                   <div className='flex items-center gap-3 px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg'>
@@ -85,11 +88,11 @@ const Navbar = () => {
                     <div className='flex flex-col'>
                       <div className='flex items-center gap-2'>
                         <span className='text-sm font-bold text-white'>
-                          {user?.credits?.available || 0}
+                          {data?.credits?.available || 0}
                         </span>
                         <span className='text-xs text-slate-500'>/</span>
                         <span className='text-xs text-slate-400'>
-                          {user?.credits?.total || 0}
+                          {data?.credits?.total || 0}
                         </span>
                       </div>
                       <span className='text-xs text-slate-500'>Credits</span>
@@ -153,10 +156,10 @@ const Navbar = () => {
                         <div className='absolute inset-0 bg-gradient-to-r from-pink-500/5 to-purple-500/5'></div>
                         <div className='relative'>
                           <p className='text-sm font-semibold text-white truncate'>
-                            {user?.name}
+                            {data?.name}
                           </p>
                           <p className='text-xs text-slate-400 truncate mt-0.5'>
-                            {user?.email}
+                            {data?.email}
                           </p>
                         </div>
                       </div>

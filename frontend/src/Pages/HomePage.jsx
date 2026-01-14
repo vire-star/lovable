@@ -17,7 +17,7 @@ const HomePage = () => {
   
   const promptValue = watch("prompt", "")
 
- 
+  // const {data:userData} = useGetUserHook()
    const user = userStore((state)=>state.user)
   // Timer for generation
   useEffect(() => {
