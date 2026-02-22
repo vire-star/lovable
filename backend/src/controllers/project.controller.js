@@ -356,11 +356,19 @@ IMPORTANT: Always wrap your code in a function named "App".`
       project.activeFile = currentFilePath
 
       await project.save()
-      
+
       await User.findByIdAndUpdate(userId, {
         $inc: { 'usage.totalGenerations': 1 }
       })
     }
+
+    // 🔥 Deduct credit AFTER successful generation
+await CreditService.deductCredit(
+  userId,
+  project._id,
+  prompt,
+  isNewProject ? "new_project" : "edit"
+)
 
     res.json({
       success: true,

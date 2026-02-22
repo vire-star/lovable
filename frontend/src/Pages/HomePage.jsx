@@ -17,7 +17,7 @@ const HomePage = () => {
   
   const promptValue = watch("prompt", "")
 
-  // const {data:userData} = useGetUserHook()
+  const {data:userData} = useGetUserHook()
    const user = userStore((state)=>state.user)
   // Timer for generation
   useEffect(() => {
@@ -36,7 +36,7 @@ const HomePage = () => {
   const handleSubmitForm = (data) => {
     setGenerationError(null)
     
-    if(!user){
+    if(!userData){
       navigate('/login')
     }else{
       mutate(

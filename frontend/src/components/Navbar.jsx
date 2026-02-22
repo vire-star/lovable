@@ -137,12 +137,12 @@ const Navbar = () => {
                           <div className='absolute inset-0 bg-pink-500/30 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
                           <div className='relative w-9 h-9 rounded-lg bg-gradient-to-br from-pink-500 via-rose-500 to-purple-600 flex items-center justify-center shadow-md shadow-pink-500/20 group-hover:shadow-pink-500/40 transition-all duration-300'>
                             <span className='text-sm font-bold text-white'>
-                              {user?.name?.charAt(0).toUpperCase() || 'U'}
+                              {data?.name?.charAt(0).toUpperCase() || 'U'}
                             </span>
                           </div>
                         </div>
                         <span className='text-sm font-medium text-slate-300 group-hover:text-white transition-colors duration-300'>
-                          {user?.name}
+                          {data?.name}
                         </span>
                       </button>
                     </PopoverTrigger>
